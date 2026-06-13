@@ -1,0 +1,36 @@
+{
+  "description": "Decision made by the approval agent.",
+  "properties": {
+    "decision": {
+      "default": "pending",
+      "title": "Decision",
+      "type": "string"
+    },
+    "reason": {
+      "default": "",
+      "title": "Reason",
+      "type": "string"
+    },
+    "required_actions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Actions",
+      "type": "array"
+    },
+    "correction_count": {
+      "default": 0,
+      "title": "Correction Count",
+      "type": "integer"
+    },
+    "correction_hints": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Correction Hints",
+      "type": "array"
+    }
+  },
+  "title": "ApprovalDecision",
+  "type": "object"
+}

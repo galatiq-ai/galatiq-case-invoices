@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "IntegrityCheck": {
+      "description": "Result of a data integrity check.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "issue": {
+          "title": "Issue",
+          "type": "string"
+        },
+        "severity": {
+          "default": "error",
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "issue"
+      ],
+      "title": "IntegrityCheck",
+      "type": "object"
+    },
+    "InventoryCheck": {
+      "description": "Result of a single inventory check on one item.",
+      "properties": {
+        "item": {
+          "title": "Item",
+          "type": "string"
+        },
+        "requested_qty": {
+          "title": "Requested Qty",
+          "type": "integer"
+        },
+        "available_stock": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available Stock"
+        },
+        "status": {
+          "default": "",
+          "title": "Status",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "item",
+        "requested_qty"
+      ],
+      "title": "InventoryCheck",
+      "type": "object"
+    }
+  },
+  "description": "Aggregated validation results for an invoice.",
+  "properties": {
+    "invoice_number": {
+      "title": "Invoice Number",
+      "type": "string"
+    },
+    "inventory_checks": {
+      "items": {
+        "$ref": "#/$defs/InventoryCheck"
+      },
+      "title": "Inventory Checks",
+      "type": "array"
+    },
+    "integrity_errors": {
+      "items": {
+        "$ref": "#/$defs/IntegrityCheck"
+      },
+      "title": "Integrity Errors",
+      "type": "array"
+    },
+    "passed": {
+      "default": true,
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "summary": {
+      "default": "",
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "invoice_number"
+  ],
+  "title": "ValidationResult",
+  "type": "object"
+}

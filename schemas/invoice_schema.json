@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "LineItem": {
+      "description": "A single line item on an invoice.",
+      "properties": {
+        "item": {
+          "title": "Item",
+          "type": "string"
+        },
+        "qty": {
+          "title": "Qty",
+          "type": "integer"
+        },
+        "unit_price": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit Price"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "item",
+        "qty"
+      ],
+      "title": "LineItem",
+      "type": "object"
+    }
+  },
+  "description": "Structured data extracted from an invoice document.",
+  "properties": {
+    "invoice_number": {
+      "title": "Invoice Number",
+      "type": "string"
+    },
+    "vendor": {
+      "title": "Vendor",
+      "type": "string"
+    },
+    "date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Date"
+    },
+    "due_date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Due Date"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/LineItem"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "total": {
+      "default": 0.0,
+      "title": "Total",
+      "type": "number"
+    },
+    "currency": {
+      "default": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "raw_text": {
+      "default": "",
+      "title": "Raw Text",
+      "type": "string"
+    },
+    "extraction_method": {
+      "default": "llm",
+      "title": "Extraction Method",
+      "type": "string"
+    },
+    "confidence": {
+      "default": 1.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "ingestion_errors": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Ingestion Errors",
+      "type": "array"
+    }
+  },
+  "required": [
+    "invoice_number",
+    "vendor"
+  ],
+  "title": "ExtractedInvoice",
+  "type": "object"
+}

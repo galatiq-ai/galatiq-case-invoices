@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+storage/inventory.db
+logs/agent_logs.db
+traces/*
+!traces/.gitkeep
+.env
+venv/
+.venv/
