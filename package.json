@@ -1,0 +1,14 @@
+{
+  "name": "galatiq-invoice-lint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Dev-only frontend linting. Not a runtime or build dependency.",
+  "scripts": {
+    "lint": "eslint frontend"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0"
+  }
+}

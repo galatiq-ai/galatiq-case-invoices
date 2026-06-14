@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Galatiq Invoice Pipeline — scaffold</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Galatiq Invoice Pipeline</h1>
+      <p class="sub">Scaffold · one wide event spans client → backend, shared by web and CLI.</p>
+    </header>
+
+    <section class="card">
+      <button id="hello-btn">Say hello</button>
+      <pre id="hello-out" class="out">click to call <code>POST /api/hello</code></pre>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>Recent wide events</h2>
+        <button id="refresh-btn" class="ghost">refresh</button>
+      </div>
+      <table id="events">
+        <thead>
+          <tr>
+            <th>level</th><th>source</th><th>client</th><th>method</th>
+            <th>path</th><th>status</th><th>ms</th><th>db</th><th>trace</th><th>detail</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
