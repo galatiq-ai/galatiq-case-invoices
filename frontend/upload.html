@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upload · Galatiq Accounts Payable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,460;9..144,480;9..144,500;9..144,600&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="index.html" aria-label="Galatiq Accounts Payable — Inbox">
+    <span class="mark">Galatiq<span class="dot">.</span></span>
+    <span class="descriptor">Accounts Payable</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Inbox</a>
+    <a href="vendors.html">Vendors</a>
+  </div>
+  <div class="nav-right">
+    <a href="upload.html" class="btn btn-primary">Upload invoice</a>
+    <div class="who">
+      <span class="av">DO</span>
+      <span>
+        <span class="name">Dana Okafor</span><br />
+        <span class="org">Acme Corp</span>
+      </span>
+    </div>
+  </div>
+</nav>
+
+<main class="shell">
+  <div class="upload-wrap">
+    <p class="eyebrow reveal" style="animation-delay:.05s">Add to the queue</p>
+    <h1 class="page-title reveal" style="animation-delay:.12s; text-align:center;">Upload</h1>
+
+    <form class="dropzone reveal" id="dz" style="animation-delay:.22s" aria-label="Drop an invoice to process">
+      <span class="glyph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg>
+      </span>
+      <span class="dz-title">Drop an invoice to process.</span>
+      <span class="dz-sub">or <label for="file" style="color:var(--clay-deep); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px;">browse your files</label></span>
+      <div class="formats">
+        <span class="fmt">PDF</span>
+        <span class="fmt">CSV</span>
+        <span class="fmt">JSON</span>
+        <span class="fmt">XML</span>
+        <span class="fmt">TXT</span>
+      </div>
+      <input type="file" id="file" accept=".pdf,.csv,.json,.xml,.txt" />
+    </form>
+
+    <p class="upload-hint reveal" style="animation-delay:.32s">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Processing runs in the background — watch it move through your <a href="index.html" style="color:var(--sage-deep); font-weight:700;">inbox</a>.
+    </p>
+  </div>
+</main>
+
+<script type="module" src="upload.js"></script>
+</body>
+</html>

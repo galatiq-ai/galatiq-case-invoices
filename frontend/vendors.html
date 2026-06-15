@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Inbox · Galatiq Accounts Payable</title>
+<title>Vendors · Galatiq Accounts Payable</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,460;9..144,480;9..144,500;9..144,600&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -17,8 +17,8 @@
     <span class="descriptor">Accounts Payable</span>
   </a>
   <div class="nav-links">
-    <a href="index.html" class="active">Inbox</a>
-    <a href="vendors.html">Vendors</a>
+    <a href="index.html">Inbox</a>
+    <a href="vendors.html" class="active">Vendors</a>
   </div>
   <div class="nav-right">
     <a href="upload.html" class="btn btn-primary">Upload invoice</a>
@@ -34,16 +34,16 @@
 
 <main class="shell">
   <header>
-    <p class="eyebrow reveal" style="animation-delay:.05s">Acme Corp · Today</p>
-    <h1 class="page-title reveal" style="animation-delay:.12s">Inbox</h1>
-    <p class="page-lede reveal" id="lede" style="animation-delay:.2s">Loading the queue…</p>
+    <p class="eyebrow reveal" style="animation-delay:.05s">Acme Corp</p>
+    <h1 class="page-title reveal" style="animation-delay:.12s">Vendors</h1>
+    <p class="page-lede reveal" style="animation-delay:.2s">The master file the agents check every invoice against.</p>
   </header>
 
-  <section class="list reveal" id="list" style="animation-delay:.3s" aria-label="Invoices needing review">
-    <div class="loading">Loading invoices…</div>
+  <section class="list reveal" id="vendor-list" style="animation-delay:.3s" aria-label="Vendor master">
+    <div class="loading">Loading vendors…</div>
   </section>
 </main>
 
-<script type="module" src="inbox.js"></script>
+<script type="module" src="vendors.js"></script>
 </body>
 </html>
