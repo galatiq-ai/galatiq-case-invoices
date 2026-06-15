@@ -1,0 +1,3 @@
+Invoice Number,Vendor,Date,Due Date,Item,Qty,Unit Price,Line Total
+INV-2007,Apex Components LLC,2026-02-07,2026-03-09,WidgetA,4,260.00,1040.00
+,,,,,,Total:,1040.00

@@ -24,19 +24,30 @@ Rules:
 
 def _doc_user_message(doc: SourceDoc, instruction: str) -> dict:
     if doc.kind == "text":
-        return {"role": "user", "content": f"{instruction}\n\n--- DOCUMENT ({doc.origin}) ---\n{doc.text}"}
+        return {
+            "role": "user",
+            "content": f"{instruction}\n\n--- DOCUMENT ({doc.origin}) ---\n{doc.text}",
+        }
     return {
         "role": "user",
         "content": image_content_parts(doc)
-        + [{"type": "text", "text": f"{instruction} The document is in the attached image(s)."}],
+        + [
+            {
+                "type": "text",
+                "text": f"{instruction} The document is in the attached image(s).",
+            }
+        ],
     }
 
 
 def extract(ctx: RunContext, doc: SourceDoc) -> ExtractedInvoice:
     return structured(
-        ctx, "extract",
-        [{"role": "system", "content": EXTRACT_SYSTEM},
-         _doc_user_message(doc, "Extract the invoice.")],
+        ctx,
+        "extract",
+        [
+            {"role": "system", "content": EXTRACT_SYSTEM},
+            _doc_user_message(doc, "Extract the invoice."),
+        ],
         ExtractedInvoice,
     )
 
@@ -52,20 +63,36 @@ Your job is the layer the rules can't see, and it has two parts:
 Your authority is deliberately one-sided. You can WITHHOLD payment (`pay: false`), but you can never authorize past a hard block — if the deterministic layer found a blocking problem, the invoice is held no matter what you say. So set `pay: true` only when you would be comfortable paying this automatically with no human in the loop. Leave `categories` empty only when you recommend payment and there is genuinely nothing worth a human's attention."""
 
 
-def _dossier(extracted: ExtractedInvoice, findings: list[dict], suggested: list[str], blocking: bool) -> str:
+def _dossier(
+    extracted: ExtractedInvoice,
+    findings: list[dict],
+    suggested: list[str],
+    blocking: bool,
+) -> str:
     return (
-        "EXTRACTED INVOICE:\n" + json.dumps(extracted.model_dump(), indent=2, default=str)
+        "EXTRACTED INVOICE:\n"
+        + json.dumps(extracted.model_dump(), indent=2, default=str)
         + "\n\nDETERMINISTIC FINDINGS (the hard checks):\n"
-        + (json.dumps(findings, indent=2) if findings else "none — every hard rule passed")
+        + (
+            json.dumps(findings, indent=2)
+            if findings
+            else "none — every hard rule passed"
+        )
         + f"\n\nThe deterministic layer {'WILL block' if blocking else 'will NOT block'} touchless payment."
         + f"\nCategories its findings suggest: {suggested or 'none'}."
     )
 
 
-def judge(ctx: RunContext, doc: SourceDoc, extracted: ExtractedInvoice,
-          findings: list[dict], suggested: list[str], blocking: bool) -> JudgeVerdict:
-    """Draft a verdict, then critique it adversarially and finalize — the
-    self-correction loop the approval decision rides on."""
+def judge(
+    ctx: RunContext,
+    doc: SourceDoc,
+    extracted: ExtractedInvoice,
+    findings: list[dict],
+    suggested: list[str],
+    blocking: bool,
+) -> JudgeVerdict:
+    """Draft a verdict, then critique it adversarially and finalize.
+    Self-correction loop the approval decision rides on."""
     dossier = _dossier(extracted, findings, suggested, blocking)
     base = [
         {"role": "system", "content": JUDGE_SYSTEM},
@@ -75,10 +102,12 @@ def judge(ctx: RunContext, doc: SourceDoc, extracted: ExtractedInvoice,
 
     critique = base + [
         {"role": "assistant", "content": draft.model_dump_json()},
-        {"role": "user", "content":
-            "Critique your own verdict before it stands. If you recommended paying, argue the other"
+        {
+            "role": "user",
+            "content": "Critique your own verdict before it stands. If you recommended paying, argue the other"
             " side: what would make this invoice fraudulent or wrong, and is any of it actually present?"
             " If you held it, ask whether you are over-flagging a legitimate invoice and creating needless"
-            " friction for the AP team. Then return your final, corrected verdict."},
+            " friction for the AP team. Then return your final, corrected verdict.",
+        },
     ]
     return structured(ctx, "judge_final", critique, JudgeVerdict)

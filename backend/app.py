@@ -18,6 +18,7 @@ from .wide_event import get_current_event
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "data" / "uploads"
+VERIFICATION_RESULTS = Path(__file__).resolve().parent.parent / "evals" / "results.json"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="Galatiq Invoice Pipeline")
@@ -69,6 +70,33 @@ def list_vendors() -> list[dict]:
             "SELECT v.id, v.name, v.status, v.currency,"
             " (SELECT COUNT(*) FROM purchase_orders p WHERE p.vendor_id=v.id AND p.status='open')"
             " AS open_pos FROM vendors v ORDER BY v.name")]
+
+
+@api.get("/purchase-orders")
+def list_purchase_orders() -> list[dict]:
+    with unit_of_work(get_current_event()) as uow:
+        orders = [dict(r) for r in uow.query(
+            "SELECT p.id, p.po_number, p.status, p.created_at,"
+            " v.id AS vendor_id, v.name AS vendor_name, v.currency,"
+            " COALESCE(SUM(l.qty_ordered * l.unit_price), 0) AS total_authorized,"
+            " COALESCE(SUM(l.qty_invoiced * l.unit_price), 0) AS total_invoiced,"
+            " COUNT(l.id) AS line_count"
+            " FROM purchase_orders p"
+            " JOIN vendors v ON v.id = p.vendor_id"
+            " LEFT JOIN po_lines l ON l.po_id = p.id"
+            " GROUP BY p.id"
+            " ORDER BY p.status='open' DESC, p.po_number")]
+        by_po = {order["id"]: order for order in orders}
+        for order in orders:
+            order["lines"] = []
+        for line in uow.query(
+            "SELECT id, po_id, item, qty_ordered, qty_invoiced, unit_price,"
+            " (qty_ordered - qty_invoiced) AS qty_remaining"
+            " FROM po_lines ORDER BY po_id, id"):
+            order = by_po.get(line["po_id"])
+            if order is not None:
+                order["lines"].append(dict(line))
+        return orders
 
 
 def _ensure_invoice(uow, invoice_id: int) -> None:
@@ -183,6 +211,17 @@ def list_events(limit: int = 25) -> list[dict]:
             " duration_ms, error, data, created_at FROM wide_events"
             " ORDER BY created_at DESC LIMIT ?", (limit,))
     return [{**dict(r), "error": bool(r["error"]), "data": json.loads(r["data"])} for r in rows]
+
+
+@api.get("/verification-bench")
+def verification_bench() -> dict:
+    if not VERIFICATION_RESULTS.exists():
+        return {"available": False, "path": str(VERIFICATION_RESULTS)}
+    try:
+        data = json.loads(VERIFICATION_RESULTS.read_text())
+    except json.JSONDecodeError as exc:
+        raise HTTPException(500, f"verification results are not valid JSON: {exc.msg}") from exc
+    return {"available": True, **data}
 
 
 app.include_router(api)

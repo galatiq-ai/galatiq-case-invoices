@@ -29,15 +29,12 @@ class UnitOfWork:
 
 
 @contextlib.contextmanager
-def unit_of_work(event: WideEvent | None = None, *, immediate: bool = False) -> Iterator[UnitOfWork]:
+def unit_of_work(
+    event: WideEvent | None = None, *, immediate: bool = False
+) -> Iterator[UnitOfWork]:
     conn = db.connect()
     if immediate:
-        # Take the write lock up front (BEGIN IMMEDIATE) so a guard read and the
-        # write it protects serialize against other writers. Without it, two
-        # concurrent reviewer actions on one invoice each read NEEDS_REVIEW off a
-        # stale WAL snapshot and both act — double-paying. Use for the reviewer
-        # mutation endpoints; reads and the (per-invoice, single-threaded) pipeline
-        # stay on the default deferred transaction.
+        # Take the write lock up front
         conn.isolation_level = None
         conn.execute("BEGIN IMMEDIATE")
     try:

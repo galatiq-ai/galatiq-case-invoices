@@ -3,9 +3,9 @@
 // static mockup used, from live data.
 
 export function money(amount, currency) {
-  if (amount == null || amount === "") return "—";
+  if (amount == null || amount === "") return "N/A";
   const num = Number(amount);
-  if (!Number.isFinite(num)) return "—";
+  if (!Number.isFinite(num)) return "N/A";
   const sign = num < 0 ? "-" : "";
   const n = Math.abs(num).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return currency && currency !== "USD" ? `${sign}${currency} ${n}` : `${sign}$${n}`;
@@ -76,7 +76,7 @@ export function categoryTags(categories, max = 2, { critical = false } = {}) {
 }
 
 // Tiny DOM builder. Text children become text nodes (escaped); { html } sets
-// innerHTML for trusted static SVG markup only — never user/LLM data.
+// innerHTML for trusted static SVG markup only - never user/LLM data.
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {

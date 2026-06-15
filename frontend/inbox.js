@@ -4,7 +4,7 @@ import { money, relativeTime, statusChip, categoryTags, el, chip } from "./ui.js
 const listEl = document.getElementById("list");
 const ledeEl = document.getElementById("lede");
 
-const ACTIVE = new Set(["received", "processing"]); // still moving — poll while any are
+const ACTIVE = new Set(["received", "processing"]); // still moving - poll while any are
 let timer = null;
 
 function row(inv) {
@@ -25,12 +25,12 @@ function render(invoices) {
   const held = invoices.filter((i) => i.status === "needs_review").length;
   if (ledeEl) {
     ledeEl.innerHTML = held
-      ? `<b>${held} invoice${held === 1 ? "" : "s"} need${held === 1 ? "s" : ""} your review.</b> The agents have cleared the rest.`
+      ? `<b>${held} invoice${held === 1 ? "" : "s"} need${held === 1 ? "s" : ""} your review.</b>`
       : `<b>Nothing waiting on you.</b> The agents have cleared every invoice.`;
   }
   if (!invoices.length) {
     listEl.replaceChildren(el("div", { class: "list-foot empty" },
-      el("span", {}, "No invoices yet — upload one to get started.")));
+      el("span", {}, "No invoices yet. Upload one to get started.")));
     return;
   }
   listEl.replaceChildren(

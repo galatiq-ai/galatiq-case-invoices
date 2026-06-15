@@ -112,7 +112,7 @@ function decisionCard(data) {
   } else {
     body.append(
       el("h2", { class: "section-title" }, "Assessment"),
-      el("p", { class: "section-note" }, "No issues found — cleared to pay touchless."));
+      el("p", { class: "section-note" }, "No issues found. Cleared to pay touchless."));
   }
 
   if (inv.recommendation || inv.review_summary) {
@@ -122,7 +122,7 @@ function decisionCard(data) {
       el("span", { class: "reco-text" }, lead ? el("b", {}, lead) : null, inv.review_summary ? " " + inv.review_summary : "")));
     if (data.trace.some((t) => t.kind === "human_edit"))
       body.append(el("p", { class: "stale-note" },
-        "Assessed before your correction — the hard checks above were re-run on your edit, but the agent's verdict and alarm level predate it."));
+        "Assessed before your correction. The hard checks above were re-run on your edit, but the agent's verdict and alarm level predate it."));
   }
 
   return el("section", { class: "card reveal", style: "animation-delay:.2s" }, hero, body);
@@ -187,8 +187,8 @@ function essentialsCard(data) {
   const inv = data.invoice;
   const facts = el("ul", { class: "facts", style: "margin-top:14px" },
     el("li", {}, el("span", { class: "k" }, "Due date"),
-      el("span", { class: "v" + (inv.due_date_raw ? " warn" : "") }, inv.due_date_raw ? `${inv.due_date_raw} · unparseable` : (inv.due_date || "—"))),
-    el("li", {}, el("span", { class: "k" }, "Terms"), el("span", { class: "v" }, inv.payment_terms || "—")),
+      el("span", { class: "v" + (inv.due_date_raw ? " warn" : "") }, inv.due_date_raw ? `${inv.due_date_raw} · unparseable` : (inv.due_date || "N/A"))),
+    el("li", {}, el("span", { class: "k" }, "Terms"), el("span", { class: "v" }, inv.payment_terms || "N/A")),
     el("li", {}, el("span", { class: "k" }, "Line items"), el("span", { class: "v" }, String(data.line_items.length))),
     ...data.line_items.map((li) =>
       el("li", {}, el("span", { class: "k" }, `${li.item_raw} × ${fmtQty(li.quantity)}`),
@@ -214,20 +214,20 @@ function guardConfig(inv) {
       tone: "danger", requireAck: true,
       ackLabel: `I understand this is flagged as ${cat}`,
       note: `${unknownVendor ? `Approving pays ${amt} to ${inv.vendor_raw}, which isn't in your vendor master. ` : `Approving pays ${amt}. `}The agent strongly advises against it.`,
-      armLabel: `Confirm — pay ${amt} anyway`,
+      armLabel: `Confirm pay ${amt} anyway`,
     };
   }
   if (inv.review_level === "high") {
     return {
       tone: "warn", requireAck: false,
       note: `The agent held this for ${cat} and recommends against paying. Approving overrides that and pays ${amt}.`,
-      armLabel: `Confirm — override and pay ${amt}`,
+      armLabel: `Confirm override and pay ${amt}`,
     };
   }
   return {
     tone: "calm", requireAck: false,
-    note: `Held for ${cat} — review the details, then sign off to pay ${amt}.`,
-    armLabel: `Confirm — pay ${amt}`,
+    note: `Held for ${cat}. Review the details, then sign off to pay ${amt}.`,
+    armLabel: `Confirm pay ${amt}`,
   };
 }
 
@@ -276,7 +276,7 @@ function actions(inv) {
       approve.setAttribute("aria-pressed", "true");
       approve.textContent = cfg.armLabel;
       approve.classList.add("armed");
-      showMsg(`${cfg.armLabel} — click again, or wait to cancel.`);
+      showMsg(`${cfg.armLabel}. Click again, or wait to cancel.`);
       clearTimeout(t);
       t = setTimeout(disarm, 4500);
       return;
@@ -344,7 +344,7 @@ function correctionForm(data) {
     if (!Object.keys(body).length) { msg.textContent = "No changes to save."; msg.className = "action-msg"; return; }
     save.disabled = cancel.disabled = true;
     try {
-      flash = { ok: true, text: "Corrections saved — the hard checks were re-run." };
+      flash = { ok: true, text: "Corrections saved. The hard checks were re-run." };
       render(await apiPost(`/api/invoices/${inv.id}/correct`, body, "correct"));
     } catch (err) { save.disabled = cancel.disabled = false; flash = null; msg.textContent = err.message; msg.className = "action-msg error"; }
   };
@@ -364,11 +364,11 @@ function correctionForm(data) {
 
 function resolved(inv) {
   const map = {
-    paid: ["", "Paid — this invoice has been disbursed."],
-    approved: ["", "Approved — payment in flight."],
-    rejected: ["rejected", "Rejected — declined and logged."],
-    superseded: ["rejected", "Superseded — an exact duplicate of an earlier invoice."],
-    failed: ["rejected", "Processing failed — see the trace."],
+    paid: ["", "Paid. This invoice has been disbursed."],
+    approved: ["", "Approved. Payment in flight."],
+    rejected: ["rejected", "Rejected. Declined and logged."],
+    superseded: ["rejected", "Superseded. An exact duplicate of an earlier invoice."],
+    failed: ["rejected", "Processing failed. See the trace."],
   }[inv.status];
   const banner = el("div", { class: "resolved " + (map ? map[0] : "") }, map ? map[1] : title(inv.status));
   const wrap = el("div", { class: "actions" }, banner);
@@ -389,7 +389,7 @@ function render(data) {
       el("div", {}, decisionCard(data), documentCard(inv), traceDisclosure(data.trace)),
       el("aside", {}, essentialsCard(data))));
 
-  if (ACTIVE.has(inv.status)) setTimeout(load, 2000); // still processing — keep refreshing
+  if (ACTIVE.has(inv.status)) setTimeout(load, 2000); // still processing - keep refreshing
 }
 
 async function load() {

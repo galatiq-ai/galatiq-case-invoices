@@ -1,0 +1,18 @@
+From: billing@widgetsinc.com
+Subject: RESUBMISSION - Invoice INV-1001 (payment not yet received)
+
+Dear Acme Corp,
+
+We have not yet received payment for invoice INV-1001 issued 2026-01-15,
+due 2026-02-01. Details below for your convenience.
+
+Vendor: Widgets Inc.
+Invoice No: INV-1001
+
+  - WidgetA, 10 units @ $250.00 = $2,500.00
+  - WidgetB, 5 units @ $500.00 = $2,500.00
+
+Total due: $5,000.00 (Net 15)
+
+Regards,
+Widgets Inc. Accounts Receivable

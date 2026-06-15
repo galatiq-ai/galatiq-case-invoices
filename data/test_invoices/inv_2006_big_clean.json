@@ -1,0 +1,17 @@
+{
+  "invoice_number": "INV-2006",
+  "vendor": {"name": "Northstar Fabrication Co.", "address": "88 Foundry Rd, Cleveland, OH 44101"},
+  "date": "2026-02-06",
+  "due_date": "2026-03-08",
+  "line_items": [
+    {"item": "WidgetA", "quantity": 15, "unit_price": 250.00, "amount": 3750.00},
+    {"item": "WidgetB", "quantity": 10, "unit_price": 500.00, "amount": 5000.00},
+    {"item": "GadgetX", "quantity": 5, "unit_price": 750.00, "amount": 3750.00}
+  ],
+  "subtotal": 12500.00,
+  "tax_rate": 0.0,
+  "tax_amount": 0.00,
+  "total": 12500.00,
+  "currency": "USD",
+  "payment_terms": "Net 30"
+}

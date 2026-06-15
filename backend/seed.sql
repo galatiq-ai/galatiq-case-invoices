@@ -9,8 +9,9 @@
 --     price and quantity, so they can clear touchless. Onboarded vendors
 --     without a PO, and over-authorization quantities, surface in validation
 --     rather than here.
--- No inventory table: this is accounts payable, not inventory management — an
 -- invoice is corroborated by vendor + PO, not by warehouse stock-on-hand.
+-- Dropping the inventory table was a deliberate decision, because purchase
+-- orders allow for more complete and correct analysis.
 
 ------------------------------------------------------------------------------
 -- Vendor master

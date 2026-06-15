@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Review · Acme Corp</title>
+<title>Verification Bench · Acme Corp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,460;9..144,480;9..144,500;9..144,600&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -19,17 +19,25 @@
     <a href="index.html">Inbox</a>
     <a href="vendors.html">Vendors</a>
     <a href="purchase-orders.html">Purchase orders</a>
-    <a href="verification-bench.html">Verification bench</a>
+    <a href="verification-bench.html" class="active">Verification bench</a>
   </div>
   <div class="nav-right">
     <a href="upload.html" class="btn btn-primary">Upload invoice</a>
   </div>
 </nav>
 
-<main class="shell" id="review-root">
-  <p class="loading">Loading invoice…</p>
+<main class="shell">
+  <header>
+    <p class="eyebrow reveal" style="animation-delay:.05s">Quality gate</p>
+    <h1 class="page-title reveal" style="animation-delay:.12s">Verification bench</h1>
+    <p class="page-lede reveal" id="bench-lede" style="animation-delay:.2s">Loading the latest run…</p>
+  </header>
+
+  <section class="bench-wrap reveal" id="bench-root" style="animation-delay:.3s" aria-label="Verification bench results">
+    <div class="loading">Loading verification results…</div>
+  </section>
 </main>
 
-<script type="module" src="review.js"></script>
+<script type="module" src="verification-bench.js"></script>
 </body>
 </html>
