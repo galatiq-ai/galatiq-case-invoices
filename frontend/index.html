@@ -10,12 +10,17 @@
   <main>
     <header>
       <h1>Galatiq Invoice Pipeline</h1>
-      <p class="sub">Scaffold · one wide event spans client → backend, shared by web and CLI.</p>
+      <p class="sub">Upload an invoice; the same API backs the web and the CLI.</p>
     </header>
 
     <section class="card">
-      <button id="hello-btn">Say hello</button>
-      <pre id="hello-out" class="out">click to call <code>POST /api/hello</code></pre>
+      <h2>Process an invoice</h2>
+      <form id="upload-form" class="row">
+        <input type="file" id="file-input" required />
+        <button type="submit">Process</button>
+      </form>
+      <pre id="result-out" class="out">choose an invoice document and process it</pre>
+      <button id="approve-btn" type="button" style="display:none">Approve &amp; Pay</button>
     </section>
 
     <section class="card">

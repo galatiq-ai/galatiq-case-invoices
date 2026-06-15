@@ -15,7 +15,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
 from . import config, tracing
-from .unit_of_work import UnitOfWork
+from .unit_of_work import unit_of_work
 
 
 class SchemaRetryExceeded(Exception):
@@ -26,8 +26,12 @@ class SchemaRetryExceeded(Exception):
 
 @dataclass
 class RunContext:
-    uow: UnitOfWork
+    """Carries the invoice id and the bound wide event through the pipeline. It
+    holds no unit of work on purpose: each LLM exchange is traced in its own short
+    transaction (see `_emit_llm_event`), and each pipeline node is handed its own
+    uow. So no write transaction is ever held across an LLM call, by construction."""
     invoice_id: int
+    event: object = None              # WideEvent, for binding each trace write's unit of work
 
 
 _client: OpenAI | None = None
@@ -86,19 +90,23 @@ def _persistable(messages: list[dict]) -> list[dict]:
 
 
 def _emit_llm_event(ctx: RunContext, node: str, kind: str, payload: dict, response, started: float) -> None:
+    """Record one LLM exchange in its own short transaction. Self-contained on
+    purpose: the LLM layer owns durably tracing each call, and committing here
+    means no write lock is held when the caller makes its next call."""
     if "messages" in payload:
         payload = {**payload, "messages": _persistable(payload["messages"])}
     usage = response.usage
-    tracing.emit(
-        ctx.uow,
-        ctx.invoice_id,
-        node,
-        kind,
-        payload,
-        tokens_in=usage.prompt_tokens if usage else None,
-        tokens_out=usage.completion_tokens if usage else None,
-        duration_ms=int((time.monotonic() - started) * 1000),
-    )
+    with unit_of_work(ctx.event) as uow:
+        tracing.emit(
+            uow,
+            ctx.invoice_id,
+            node,
+            kind,
+            payload,
+            tokens_in=usage.prompt_tokens if usage else None,
+            tokens_out=usage.completion_tokens if usage else None,
+            duration_ms=int((time.monotonic() - started) * 1000),
+        )
 
 
 def structured(

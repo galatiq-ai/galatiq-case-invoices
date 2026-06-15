@@ -12,9 +12,6 @@
 -- No inventory table: this is accounts payable, not inventory management — an
 -- invoice is corroborated by vendor + PO, not by warehouse stock-on-hand.
 
--- Transitional: scaffold hello demo.
-INSERT OR IGNORE INTO greetings (id, message) VALUES (1, 'hello world');
-
 ------------------------------------------------------------------------------
 -- Vendor master
 ------------------------------------------------------------------------------

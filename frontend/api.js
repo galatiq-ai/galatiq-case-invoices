@@ -34,3 +34,19 @@ export async function apiFetch(path, { method = "GET", body = null, action } = {
     : null;
   return { traceId, res, data };
 }
+
+export async function apiUpload(path, file, action) {
+  const traceId = makeTraceId();
+  const form = new FormData();
+  form.append("file", file, file.name);
+
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "x-trace-id": traceId, "x-client": clientHeader(action ?? `upload ${path}`) },
+    body: form,
+  });
+  const data = (res.headers.get("content-type") || "").includes("application/json")
+    ? await res.json()
+    : null;
+  return { traceId, res, data };
+}

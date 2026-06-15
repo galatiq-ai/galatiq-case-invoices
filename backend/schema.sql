@@ -26,12 +26,6 @@ CREATE TABLE IF NOT EXISTS wide_events (
 CREATE INDEX IF NOT EXISTS idx_wide_events_trace ON wide_events(trace_id);
 CREATE INDEX IF NOT EXISTS idx_wide_events_created ON wide_events(created_at DESC);
 
--- Transitional: backs the scaffold hello demo. Removed when invoice endpoints land.
-CREATE TABLE IF NOT EXISTS greetings (
-    id      INTEGER PRIMARY KEY,
-    message TEXT NOT NULL
-);
-
 ------------------------------------------------------------------------------
 -- Reference / master data (seeded — Acme's existing records)
 ------------------------------------------------------------------------------
@@ -97,6 +91,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     currency        TEXT,
     invoice_date    TEXT,
     due_date        TEXT,
+    due_date_raw    TEXT,                         -- verbatim due date when unparseable ('yesterday')
     po_reference    TEXT,
     revision        TEXT,
 
@@ -104,11 +99,14 @@ CREATE TABLE IF NOT EXISTS invoices (
     -- verify step can compare the document's own arithmetic against the lines.
     stated_subtotal REAL,
     stated_tax      REAL,
+    stated_charges  REAL,                         -- sum of non-tax charges (shipping, handling, …)
     stated_total    REAL,
 
-    recommendation  TEXT,                         -- LLM advisory: approve | reject | needs_review
+    recommendation  TEXT,                         -- judge advisory: pay | hold
     outcome         TEXT,                         -- deterministic gate result / terminal disposition
-    review_tier     TEXT,                         -- low | medium | high (deterministic triage)
+    review_category TEXT,                         -- headline reason for a hold (backend/review.py ReviewCategory)
+    review_level    TEXT,                         -- info | low | medium | high | critical (alarm)
+    review_summary  TEXT,                         -- judge's human-readable account of the invoice
 
     fingerprint     TEXT,                         -- vendor+number+amount, for exact-duplicate control
     superseded_by   INTEGER REFERENCES invoices(id),
@@ -118,14 +116,15 @@ CREATE TABLE IF NOT EXISTS invoices (
 );
 
 CREATE TABLE IF NOT EXISTS invoice_line_items (
-    id           INTEGER PRIMARY KEY,
-    invoice_id   INTEGER NOT NULL REFERENCES invoices(id),
-    item_raw     TEXT NOT NULL,                   -- as written on the document
-    matched_item TEXT,                            -- catalog identity after matching, null if unmatched
-    quantity     REAL,
-    unit_price   REAL,
-    line_total   REAL,
-    note         TEXT
+    id                 INTEGER PRIMARY KEY,
+    invoice_id         INTEGER NOT NULL REFERENCES invoices(id),
+    item_raw           TEXT NOT NULL,             -- as written on the document
+    matched_item       TEXT,                      -- catalog identity after matching, null if unmatched
+    matched_po_line_id INTEGER REFERENCES po_lines(id),  -- the exact PO line consumed on payment
+    quantity           REAL,
+    unit_price         REAL,
+    line_total         REAL,
+    note               TEXT
 );
 
 -- Deterministic and LLM findings. severity drives the gate; code + severity
