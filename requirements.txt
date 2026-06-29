@@ -1,0 +1,6 @@
+pydantic
+python-dotenv
+pdfplumber
+groq
+langgraph
+openpyxl

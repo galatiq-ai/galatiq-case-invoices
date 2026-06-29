@@ -1,0 +1,3 @@
+APPROVAL_THRESHOLD = 10_000
+LLM_MODEL = "llama-3.1-8b-instant"
+MAX_LLM_RETRIES = 2
