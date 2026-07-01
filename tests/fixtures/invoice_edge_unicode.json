@@ -1,0 +1,18 @@
+{
+  "invoice_number": "INV-EDGE-001",
+  "vendor": {
+    "name": "Ñoño & Söhne GmbH",
+    "address": "Straße der Einheit 42, München, Germany"
+  },
+  "date": "2026-02-01",
+  "due_date": "2026-03-01",
+  "line_items": [
+    {"item": "WidgetA", "quantity": 3, "unit_price": 250.00}
+  ],
+  "subtotal": 750.00,
+  "tax_rate": 0.0,
+  "tax_amount": 0.00,
+  "total": 750.00,
+  "currency": "USD",
+  "payment_terms": "Net 30"
+}

@@ -1,0 +1,38 @@
+# Secrets
+.env
+
+# SQLite databases (recreated at startup by init_db / init_normalized_db)
+*.db
+*.db-shm
+*.db-wal
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Run logs (timestamped JSON per pipeline run)
+runs/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Streamlit — commit config.toml (theme), never commit secrets
+.streamlit/secrets.toml

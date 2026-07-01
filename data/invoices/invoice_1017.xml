@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<invoice>
+  <header>
+    <invoice_number>INV-1017</invoice_number>
+    <vendor>Meridian Procurement LLC</vendor>
+    <date>2026-02-03</date>
+    <due_date>2026-03-03</due_date>
+    <currency>USD</currency>
+  </header>
+  <line_items>
+    <item>
+      <name>WidgetA</name>
+      <quantity>2</quantity>
+      <unit_price>390.00</unit_price>
+    </item>
+    <item>
+      <name>GadgetX</name>
+      <quantity>1</quantity>
+      <unit_price>1100.00</unit_price>
+    </item>
+  </line_items>
+  <totals>
+    <subtotal>1880.00</subtotal>
+    <tax_rate>0.00</tax_rate>
+    <tax_amount>0.00</tax_amount>
+    <total>1880.00</total>
+  </totals>
+  <payment_terms>Net 30</payment_terms>
+</invoice>

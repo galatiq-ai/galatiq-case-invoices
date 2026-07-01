@@ -128,7 +128,13 @@ def create_bulk_invoice():
     pdf.ln(3)
 
     pdf.set_font("Helvetica", "B", 10)
-    for header, w in [("Item", 60), ("Qty", 20), ("Unit Price", 30), ("Amount", 30), ("Notes", 40)]:
+    for header, w in [
+        ("Item", 60),
+        ("Qty", 20),
+        ("Unit Price", 30),
+        ("Amount", 30),
+        ("Notes", 40),
+    ]:
         pdf.cell(w, 7, header, border=1)
     pdf.ln()
 

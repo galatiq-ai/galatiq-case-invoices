@@ -1,0 +1,13 @@
+[theme]
+primaryColor      = "#2563EB"
+backgroundColor   = "#F9FAFB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor         = "#111827"
+font              = "sans serif"
+
+[server]
+headless   = true
+runOnSave  = true
+
+[logger]
+level = "error"

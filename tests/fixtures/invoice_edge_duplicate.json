@@ -1,0 +1,19 @@
+{
+  "invoice_number": "INV-EDGE-004",
+  "vendor": {
+    "name": "Duplicate Test Corp.",
+    "address": "99 Repeat Rd, Chicago, IL"
+  },
+  "date": "2026-02-10",
+  "due_date": "2026-03-10",
+  "line_items": [
+    {"item": "WidgetA", "quantity": 2, "unit_price": 250.00}
+  ],
+  "subtotal": 500.00,
+  "tax_rate": 0.0,
+  "tax_amount": 0.00,
+  "total": 500.00,
+  "currency": "USD",
+  "payment_terms": "Net 15",
+  "notes": "Duplicate idempotency test. This invoice will be pre-seeded as already approved."
+}
