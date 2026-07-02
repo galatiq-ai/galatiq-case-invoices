@@ -116,8 +116,4 @@ Output should include structured logs and results.
 
 ## Submission
 
-Submit your solution as a link to a **public GitHub repository — GitHub only** (`github.com`). GitLab, Bitbucket, zipped files, and Google Drive links cannot be accepted: our review tooling reads GitHub repositories directly.
-
-- Make the repository **public** so we can access it.
-- A plain repo link (`github.com/you/repo`), a branch link (`/tree/<branch>`), or a pull request (`/pull/<number>`) all work.
-- Include clear setup and run instructions (and any notes on your approach) in the repo.
+Submit your solution as a link to a public GitHub repository — GitHub only (github.com).
