@@ -47,11 +47,8 @@ def _decision(outcome, reasons, row, decided_by="rule_engine", **extra) -> Decis
     )
 
 
-_RANK = {Severity.REJECTION_RULE: 0, Severity.REVIEW_TRIGGER: 1, Severity.WARNING: 2}
-
-
 def _reasons(findings: list[Finding]) -> list[str]:
-    ordered = sorted(findings, key=lambda f: _RANK[f.severity])
+    ordered = sorted(findings, key=lambda f: list(Severity).index(f.severity))
     return [f"{_where(f)}: {f.detail}" for f in ordered]
 
 

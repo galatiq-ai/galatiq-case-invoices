@@ -4,6 +4,7 @@ Orchestration only: every rule lives in ingestion, validation, approval, ledger 
 """
 
 import json
+import logging
 import sqlite3
 from collections import Counter
 from collections.abc import Callable
@@ -22,6 +23,8 @@ from invoice_pipeline.validation import validate
 
 MAX_DECIDE_ATTEMPTS = 3  # read-decide-write rounds before a processing failure
 
+log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class Runtime:
@@ -35,11 +38,19 @@ class Runtime:
 
 
 class ProcessingFailure(Exception):
-    """A file failed after ingestion: nothing was recorded for it."""
+    """An invoice of a file failed after ingestion, at the named stage."""
 
     def __init__(self, file: str, stage: str, error: str):
         super().__init__(f"{file}: {stage}: {error}")
         self.file, self.stage, self.error = file, stage, error
+
+
+def _notify(rt: Runtime, event: Event) -> None:
+    """Deliver an event; an observer error is logged and never changes what was processed."""
+    try:
+        rt.on_event(event)
+    except Exception:
+        log.warning("event observer failed on %s for %s", event.name, event.file, exc_info=True)
 
 
 @contextmanager
@@ -62,7 +73,7 @@ def record_arrival(conn, ingested: Ingested, source: str, rt: Runtime) -> int:
     invoice = ingested.invoice
     with _stage(source, "validation"):
         findings = [*ingested.findings, *validate(invoice, rt.catalog)]
-    rt.on_event(Event("validated", source, {"findings": [f.code.value for f in findings]}))
+    _notify(rt, Event("validated", source, {"findings": [f.code.value for f in findings]}))
     identity, key = invoice.identity(), vendor_key(invoice.vendor)
     for attempt in range(1, MAX_DECIDE_ATTEMPTS + 1):
         with _stage(source, "ledger"):
@@ -85,7 +96,7 @@ def record_arrival(conn, ingested: Ingested, source: str, rt: Runtime) -> int:
         if arrival_id is not None:
             return arrival_id
         if attempt < MAX_DECIDE_ATTEMPTS:
-            rt.on_event(Event("redecided", source, {"attempt": attempt}))
+            _notify(rt, Event("redecided", source, {"attempt": attempt}))
     raise ProcessingFailure(
         source,
         "ledger",
@@ -137,9 +148,9 @@ def pay_claimed(conn, arrival_id: int, rt: Runtime, source: str) -> None:
     with _stage(source, "payment"):
         issue = payment.pay(conn, arrival_id, rt.pay_fn, rt.now)
     if issue is None:
-        rt.on_event(Event("payment_sent", source, {"arrival_id": arrival_id}))
+        _notify(rt, Event("payment_sent", source, {"arrival_id": arrival_id}))
     else:
-        rt.on_event(Event("payment_failed", source, {"issue": issue.model_dump(mode="json")}))
+        _notify(rt, Event("payment_failed", source, {"issue": issue.model_dump(mode="json")}))
 
 
 class ResolutionRefused(Exception):
@@ -231,13 +242,17 @@ class BootstrapError(Exception):
     """The run cannot start: unsupported tier, or a database with the wrong schema."""
 
 
+def ledger_path_of(args) -> Path:
+    return Path(args.ledger or ledger.DEFAULT_LEDGER_PATH)
+
+
 def bootstrap(args) -> Runtime:
     """Seed a missing inventory, check both schemas, and select the tier (offline only so far)."""
     tier = args.llm or "offline"
     if tier != "offline":
         raise BootstrapError(f"LLM tier {tier!r} is not available yet; use --llm offline")
     inventory = Path(args.inventory or catalog.DEFAULT_INVENTORY_PATH)
-    ledger_path = Path(args.ledger or ledger.DEFAULT_LEDGER_PATH)
+    ledger_path = ledger_path_of(args)
     try:
         if not inventory.exists():
             catalog.seed(inventory)
@@ -254,31 +269,41 @@ def collect_files(path: Path | str) -> list[Path]:
     return sorted(p for p in path.iterdir() if p.is_file()) if path.is_dir() else [path]
 
 
-def process_path(path: Path | str, rt: Runtime) -> ArrivalResult:
-    """Ingest, decide, record and (when Approved) pay one file; a failure records nothing."""
+def process_path(path: Path | str, rt: Runtime) -> BatchResult:
+    """Ingest one file, then decide, record and (when Approved) pay each invoice in it
+    independently; a failing invoice is reported and the rest of the file continues."""
     path = Path(path)
-    ingested = ingestion.ingest(path)
-    rt.on_event(Event("ingested", path.name, {"unreadable": ingested.invoice is None}))
+    results, failed = [], []
     conn = ledger.connect(rt.ledger_path)
     try:
-        if ingested.invoice is None:
-            with _stage(path.name, "approval"):
-                decision = decide_unreadable(ingested.findings)
-            new = ledger.Arrival(path.name, rt.now(), ingested, ingested.findings, decision, None)
-            with _stage(path.name, "ledger"):
-                arrival_id = ledger.record(conn, new)
-        else:
-            arrival_id = record_arrival(conn, ingested, path.name, rt)
-        result = arrival_result(conn, arrival_id)
-        rt.on_event(
-            Event("decided", path.name, {"outcome": result.decision, "row": result.precedence_row})
-        )
-        if result.state == "payment_pending":  # Approved and claimed
-            pay_claimed(conn, arrival_id, rt, path.name)
-            result = arrival_result(conn, arrival_id)
-        return result
+        for ingested in ingestion.ingest(path):
+            try:
+                results.append(_process_one(conn, ingested, path.name, rt))
+            except Exception as exc:
+                failed.append(_failure(rt, path, exc))
     finally:
         conn.close()
+    return BatchResult(results, failed)
+
+
+def _process_one(conn, ingested: Ingested, source: str, rt: Runtime) -> ArrivalResult:
+    _notify(rt, Event("ingested", source, {"unreadable": ingested.invoice is None}))
+    if ingested.invoice is None:
+        with _stage(source, "approval"):
+            decision = decide_unreadable(ingested.findings)
+        new = ledger.Arrival(source, rt.now(), ingested, ingested.findings, decision, None)
+        with _stage(source, "ledger"):
+            arrival_id = ledger.record(conn, new)
+    else:
+        arrival_id = record_arrival(conn, ingested, source, rt)
+    result = arrival_result(conn, arrival_id)
+    _notify(
+        rt, Event("decided", source, {"outcome": result.decision, "row": result.precedence_row})
+    )
+    if result.state == "payment_pending":  # Approved and claimed
+        pay_claimed(conn, arrival_id, rt, source)
+        result = arrival_result(conn, arrival_id)
+    return result
 
 
 @dataclass(frozen=True)
@@ -290,30 +315,47 @@ class BatchResult:
         return dict(Counter(r.state for r in self.results))
 
 
+def _failure(rt: Runtime, path: Path, exc: Exception) -> ProcessingFailure:
+    """Report an exception as a ProcessingFailure (emitting `file_failed`) and return it."""
+    failure = (
+        exc
+        if isinstance(exc, ProcessingFailure)
+        else ProcessingFailure(Path(path).name, "processing", f"{type(exc).__name__}: {exc}")
+    )
+    _notify(
+        rt, Event("file_failed", failure.file, {"stage": failure.stage, "error": failure.error})
+    )
+    return failure
+
+
 def run_batch(paths: list[Path], rt: Runtime) -> BatchResult:
-    """Process files in the given order; a processing failure is reported and the rest continue."""
+    """Process files in the given order; a processing failure is reported and the rest continue.
+
+    Every committed invoice is in `results`, also when another invoice of its file failed.
+    """
     results, failed = [], []
     for path in paths:
         try:
-            results.append(process_path(path, rt))
-        except Exception as exc:
-            failure = (
-                exc
-                if isinstance(exc, ProcessingFailure)
-                else ProcessingFailure(
-                    Path(path).name, "processing", f"{type(exc).__name__}: {exc}"
-                )
-            )
-            failed.append(failure)
-            rt.on_event(
-                Event("file_failed", failure.file, {"stage": failure.stage, "error": failure.error})
-            )
+            batch = process_path(path, rt)
+        except Exception as exc:  # the file itself could not be processed (e.g. the Ledger)
+            failed.append(_failure(rt, path, exc))
+            continue
+        results.extend(batch.results)
+        failed.extend(batch.failed)
     return BatchResult(results, failed)
 
 
-def review_queue(rt: Runtime) -> list[QueueItem]:
-    """The Review Queue (read-only): the same Ledger query every presenter uses."""
-    conn = ledger.connect(rt.ledger_path)
+def review_queue(ledger_path: Path) -> list[QueueItem]:
+    """The Review Queue: the same Ledger query every presenter uses.
+
+    Read-only: the Ledger must already exist and is never created, migrated or seeded.
+    """
+    if not ledger_path.exists():
+        raise BootstrapError(f"ledger not found: {ledger_path}")
+    try:
+        conn = ledger.connect(ledger_path, read_only=True)
+    except (ledger.LedgerError, sqlite3.Error) as exc:
+        raise BootstrapError(str(exc)) from exc
     try:
         return ledger.review_queue(conn)
     finally:

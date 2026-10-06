@@ -56,8 +56,6 @@ def offline_role(role: str) -> RoleCall:
 def offline_agents() -> Agents:
     """The permanent `Agents` bundle for the offline tier; every path fails closed, no I/O."""
     return Agents(
-        assess=lambda *args, **kwargs: None,  # no usable answer
-        verify=lambda *args, **kwargs: None,  # no usable answer
         escalate_review=lambda case_file: offline_role("escalate_review"),
         advise=lambda case_file, decision: offline_role("advisory"),
     )

@@ -5,13 +5,12 @@ from typing import Literal
 
 from invoice_pipeline.ingestion.normalize import (
     clean_text,
-    normalize_invoice_number,
     normalize_sku,
     parse_date,
     parse_money,
     parse_quantity,
 )
-from invoice_pipeline.model import Ingested, Invoice, LineItem, Repair
+from invoice_pipeline.model import Ingested, Invoice, LineItem, Repair, normalize_invoice_number
 
 # label name -> spelling variants. Every label needs a ":" or "#" after it.
 _LABELS = {

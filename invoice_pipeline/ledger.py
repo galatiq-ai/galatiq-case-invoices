@@ -70,19 +70,63 @@ class LedgerError(Exception):
     """The ledger database is not the expected schema."""
 
 
-def connect(path: Path | str) -> sqlite3.Connection:
-    """Open (creating when new) a Ledger; a database with another schema version is refused."""
-    conn = sqlite3.connect(path, isolation_level=None, timeout=30)
+def connect(path: Path | str, read_only: bool = False) -> sqlite3.Connection:
+    """Open (creating when new) a Ledger; a database with another schema version is refused.
+
+    `read_only` opens an existing Ledger with `mode=ro`: nothing is created, a missing file fails.
+    """
+    if read_only:
+        uri = f"{Path(path).resolve().as_uri()}?mode=ro"
+        conn = sqlite3.connect(uri, uri=True, isolation_level=None, timeout=30)
+    else:
+        conn = sqlite3.connect(path, isolation_level=None, timeout=30)
     conn.row_factory = sqlite3.Row
-    version = conn.execute("PRAGMA user_version").fetchone()[0]
-    if version == 0 and not conn.execute("SELECT 1 FROM sqlite_master").fetchone():
-        conn.execute("PRAGMA journal_mode = WAL")
-        conn.executescript(_SCHEMA)
-        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-    elif version != SCHEMA_VERSION:
+    try:
+        version = conn.execute("PRAGMA user_version").fetchone()[0]
+        if version == 0 and not read_only:
+            version = _initialise(conn)
+        if version == SCHEMA_VERSION and not read_only:
+            _use_wal(conn)
+    except BaseException:
+        conn.close()
+        raise
+    if version != SCHEMA_VERSION:
         conn.close()
         raise LedgerError(f"{path}: unexpected user_version {version} (expected {SCHEMA_VERSION})")
     return conn
+
+
+def _initialise(conn: sqlite3.Connection) -> int:
+    """Create the schema and stamp its version in one write transaction; returns the version.
+
+    An interruption rolls both back. The check is made under the write lock, so a concurrent
+    first start that initialised the Ledger meanwhile is simply accepted, and a database that
+    already has other tables keeps version 0 (refused by the caller).
+    """
+    with write_txn(conn):  # not executescript: it would COMMIT the open transaction first
+        version = conn.execute("PRAGMA user_version").fetchone()[0]
+        if version == 0 and not conn.execute("SELECT 1 FROM sqlite_master").fetchone():
+            for statement in _SCHEMA.split(";"):
+                if statement.strip():
+                    conn.execute(statement)
+            conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+            version = SCHEMA_VERSION
+    return version
+
+
+def _use_wal(conn: sqlite3.Connection) -> None:
+    """Switch the Ledger to WAL (persistent) unless it already is.
+
+    The switch cannot run inside a transaction, and SQLite refuses it at once (SQLITE_BUSY,
+    without waiting) while another first start holds a lock; a later connect then switches it.
+    """
+    if conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal":
+        return
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+    except sqlite3.OperationalError as exc:
+        if exc.sqlite_errorcode != sqlite3.SQLITE_BUSY:
+            raise
 
 
 @contextmanager

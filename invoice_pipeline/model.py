@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from enum import StrEnum, auto
+from enum import StrEnum
 from typing import Annotated, Any, Literal
 from pydantic import BaseModel, BeforeValidator
 
@@ -18,31 +18,27 @@ class Severity(StrEnum):
 class FindingCode(StrEnum):
     """Stable Finding codes. Values equal names (e.g. "VENDOR_BLOCKED")."""
 
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name
-
     # Rejection Rules
-    VENDOR_BLOCKED = auto()
-    ITEM_ZERO_STOCK = auto()
-    ITEM_UNKNOWN = auto()
-    QUANTITY_INVALID = auto()
-    INCOMPLETE_IDENTITY = auto()
+    VENDOR_BLOCKED = "VENDOR_BLOCKED"
+    ITEM_ZERO_STOCK = "ITEM_ZERO_STOCK"
+    ITEM_UNKNOWN = "ITEM_UNKNOWN"
+    QUANTITY_INVALID = "QUANTITY_INVALID"
+    INCOMPLETE_IDENTITY = "INCOMPLETE_IDENTITY"
     # Review Triggers
-    STOCK_SHORTAGE = auto()
-    RECONCILIATION_MISMATCH = auto()
-    MISSING_REQUIRED_FIELD = auto()
-    NONPOSITIVE_TOTAL = auto()
-    VENDOR_LOOKALIKE = auto()
-    CURRENCY_NO_RATE = auto()
-    PARTIAL_IDENTITY = auto()
-    REVISION_PAYMENT_DELTA = auto()
-    UNREADABLE_DOCUMENT = auto()
-    LLM_EXTRACTED = auto()
+    STOCK_SHORTAGE = "STOCK_SHORTAGE"
+    RECONCILIATION_MISMATCH = "RECONCILIATION_MISMATCH"
+    MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD"
+    NONPOSITIVE_TOTAL = "NONPOSITIVE_TOTAL"
+    VENDOR_LOOKALIKE = "VENDOR_LOOKALIKE"
+    CURRENCY_NO_RATE = "CURRENCY_NO_RATE"
+    PARTIAL_IDENTITY = "PARTIAL_IDENTITY"
+    REVISION_PAYMENT_DELTA = "REVISION_PAYMENT_DELTA"
+    UNREADABLE_DOCUMENT = "UNREADABLE_DOCUMENT"
+    LLM_EXTRACTED = "LLM_EXTRACTED"
     # Warnings
-    VENDOR_UNKNOWN = auto()
-    PRICE_DEVIATION = auto()
-    CURRENCY_NON_USD = auto()
+    VENDOR_UNKNOWN = "VENDOR_UNKNOWN"
+    PRICE_DEVIATION = "PRICE_DEVIATION"
+    CURRENCY_NON_USD = "CURRENCY_NON_USD"
 
 
 # Duplicate Payment is an arrival classification (Decision Duplicate), not a Finding.
@@ -256,15 +252,11 @@ class Decision(BaseModel):
 class Agents:
     """Model roles injected into `approval.decide`; scripted fakes in tests.
 
-    Slice 1 supplies offline callables. Callable signatures are tightened when the
-    full-gate contracts arrive (assess/verify), without changing these fields.
+    Slice 1 supplies offline callables.
     """
 
-    assess: Callable[..., Any]
-    verify: Callable[..., Any]
     escalate_review: Callable[[CaseFile], RoleCall]
     advise: Callable[[CaseFile, Decision], RoleCall]
-    on_step: Callable[[str, dict], None] = field(default=lambda event, detail: None)
 
 
 class PaymentIssue(BaseModel):
