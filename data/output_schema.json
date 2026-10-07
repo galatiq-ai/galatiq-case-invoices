@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Invoice processing result",
+  "description": "One object per input document, written as one line of the --out file (JSON Lines). Extra fields are welcome.",
+  "type": "object",
+  "required": [
+    "source_file",
+    "document_type",
+    "invoice_number",
+    "vendor_name",
+    "vendor_id",
+    "invoice_date",
+    "currency",
+    "total",
+    "line_items",
+    "decision",
+    "reasons",
+    "payment"
+  ],
+  "properties": {
+    "source_file": {
+      "type": "string",
+      "description": "File name of the input document, for example invoice_1001.txt."
+    },
+    "document_type": {
+      "enum": ["invoice", "credit_memo"]
+    },
+    "invoice_number": {
+      "type": ["string", "null"],
+      "description": "As printed on the document. Null if the document has none."
+    },
+    "vendor_name": {
+      "type": ["string", "null"],
+      "description": "As printed on the document."
+    },
+    "vendor_id": {
+      "type": ["string", "null"],
+      "description": "The vendor master record you matched, or null if none."
+    },
+    "invoice_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "ISO 8601 (YYYY-MM-DD)."
+    },
+    "due_date": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "currency": {
+      "type": ["string", "null"],
+      "description": "ISO 4217 code, for example USD or EUR."
+    },
+    "po_number": {
+      "type": ["string", "null"],
+      "description": "The purchase order you matched, if any."
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "quantity", "unit_price"],
+        "properties": {
+          "description": { "type": "string" },
+          "item": {
+            "type": ["string", "null"],
+            "description": "The item master code you matched, or null."
+          },
+          "quantity": { "type": "number" },
+          "unit_price": { "type": "number" },
+          "amount": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "subtotal": { "type": ["number", "null"] },
+    "tax": { "type": ["number", "null"] },
+    "freight": { "type": ["number", "null"] },
+    "total": {
+      "type": ["number", "null"],
+      "description": "Document total, in the document currency."
+    },
+    "decision": {
+      "enum": ["approve", "reject", "hold"],
+      "description": "See section 1 of the AP policy."
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Why the document got its decision. Can be empty for a clean approval.",
+      "items": {
+        "type": "object",
+        "required": ["code", "detail"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Short snake_case code, for example price_variance or duplicate."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Explanation in plain language that an AP clerk can act on."
+          }
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "description": "Optional. Who approved, or who must approve, and why.",
+      "properties": {
+        "level": { "enum": ["auto", "vp", "cfo", null] },
+        "notes": { "type": "string" }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["paid", "not_paid", "credit_recorded"] },
+        "amount": { "type": ["number", "null"] },
+        "reference": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

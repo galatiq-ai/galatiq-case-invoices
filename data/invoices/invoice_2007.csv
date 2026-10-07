@@ -1,0 +1,6 @@
+doc_type,doc_no,doc_date,supplier,supplier_ref,po_ref,line,sku,description,qty,uom,unit_price,line_total,currency
+INVOICE,MW-44960,2026-02-04,MegaWidgets Corp,ACME-0042,PO-20260124,1,MW-WB,"Widget, type B",9,EA,500.00,4500.00,USD
+SUMMARY,MW-44960,,,,,,,,,,,,
+SUBTOTAL,MW-44960,,,,,,,,,,,4500.00,USD
+TAX 6%,MW-44960,,,,,,,,,,,270.00,USD
+TOTAL,MW-44960,,,,,,,,,,,4770.00,USD
